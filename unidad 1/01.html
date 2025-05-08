@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<title>Unidad 1</title>
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript">
+	
+/*Un sistema de venta de productos de limpieza al por mayor le ofrece a sus clientes minoristas una
+aplicación de consola para poder gestionar sus pedidos a la casa central. Los clientes se identifican con
+un usuario y contraseña. El programa al iniciarse, pide estas credenciales de acceso, las corrobora y en
+caso de ser correctas mostrará un mensaje de bienvenida “¡Bienvenido/a nombre-de-usuario!” Caso
+contrario, mostrará un mensaje de error “Usuario y/o contraseña incorrecta”. Al tercer intento incorrecto de
+acceso, el usuario deberá ser bloqueado y el mensaje deberá ser “Usuario bloqueado. Contacte al
+administrador”.*/
+
+//k-v (key: username, value: password)
+let authData = new Map();
+const maxLoginFailedAttempts = 3;
+
+let userData =
+[
+	{
+		password: '987654',
+		failedLoginCounter: 0,
+		isLocked: false
+	},
+	{
+		password: '987654',
+		failedLoginCounter: 0,
+		isLocked: false
+	}
+]
+
+authData.set('scorpion', userData[0] );
+authData.set('subZero', userData[1] );
+
+function isValidUserGetData( username )
+{
+	return authData.get(username);
+}
+
+//Si el estado del caso de uso, SIEMPRE comprende dos estados se podría retornar un BOOLEAN en el método de la API
+//Si no se puede garantizar que esto sea así, JAMAS definir un BOOLEAN como tipo de retorno en una método de API.
+//Generalmente se retorna un objeto que tiene estado/descripción||result:
+/*
+{
+	status: OK | FAIL | EXCEPTION
+	result: Si OK -> return value, Si es FAIL/EXCEPTION -> string (descripción del error o ID de error)
+}
+
+*/
+
+function authenticateUser( username, password )
+{
+	let api_return = 
+	{
+		status: false,
+		result: null
+	};
+
+
+	if ( (username != undefined && username != null && username != '') && (password != undefined && password != null && password != '') )
+	{
+		let userdata = isValidUserGetData(username);
+
+		if ( userdata.isLocked == false )
+		{
+			if( userdata.password === password )
+			{
+				api_return.status = true;
+			}
+			else
+			{
+				api_return.status = false;
+				api_return.result = 'USER_PASSWORD_FAILED';
+
+				userdata.failedLoginCounter++;
+				
+				if ( userdata.failedLoginCounter == maxLoginFailedAttempts )
+				{
+					userdata.isLocked = true;
+					api_return.status = false;
+					api_return.result = 'BLOCKED_USER';
+				}
+			}
+		}
+		else
+		{
+			api_return.status = false;
+			api_return.result = 'BLOCKED_USER';
+		}
+		
+	}
+	
+	return api_return;
+}
+
+//FRONTEND---------------------
+
+function GUI_login()
+{
+	let username = window.prompt("Ingrese su nombre de usuario:");
+	let password = window.prompt("Ingrese contraseña:");
+
+	let api_return = authenticateUser( username, password );
+	
+	if ( api_return.status )
+	{
+		alert('Usuario autenticado exitosamente');
+	}
+	else if ( api_return.status == false )
+	{
+		switch ( api_return.result ) 
+		{
+			case 'BLOCKED_USER':
+				alert('Usuario bloqueado. Contacte al administrador');
+			break;
+
+			case 'USER_PASSWORD_FAILED':
+				alert('Usuario y/o contraseña incorrecta');
+			break;
+
+			default:
+				alert('Error desconocido');
+			break;
+		}
+	}
+
+	return api_return;
+}
+
+function main()
+{
+	let attempts = 0;
+	let api_return = GUI_login();
+	
+	while( api_return.result == 'USER_PASSWORD_FAILED' && attempts < maxLoginFailedAttempts )
+	{
+		api_return = GUI_login();
+
+		if ( api_return.result == 'USER_PASSWORD_FAILED' )
+		{
+			attempts++;
+		}
+	}
+}
+
+window.onload = main;
+
+
+</script>
+
+</html>
