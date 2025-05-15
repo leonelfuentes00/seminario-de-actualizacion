@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<title>Unidad 1</title>
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript">
+	
+/*
+
+Agregue la acción ( 5 = Comprar artículo ) para que los clientes puedan adquirir unidades de un
+determinado producto. La operación deberá realizarse sobre un producto válido, con stock > 0 y ofrecer una confirmación al efectuar la operación. Al terminar, el stock deberá verse afectado.
+
+*/
+
+
+// USUARIO
+
+//k-v (key: username, value: password)
+let authData = new Map();
+const maxLoginFailedAttempts = 3;
+
+let userData =
+[
+	{
+		password: '987654',
+		failedLoginCounter: 0,
+		isLocked: false
+	},
+	{
+		password: '987654',
+		failedLoginCounter: 0,
+		isLocked: false
+	}
+]
+
+authData.set('scorpion', userData[0] );
+authData.set('subZero', userData[1] );
+
+function isValidUserGetData( username )
+{
+	return authData.get(username);
+}
+
+//Si el estado del caso de uso, SIEMPRE comprende dos estados se podría retornar un BOOLEAN en el método de la API
+//Si no se puede garantizar que esto sea así, JAMAS definir un BOOLEAN como tipo de retorno en una método de API.
+//Generalmente se retorna un objeto que tiene estado/descripción||result:
+/*
+{
+	status: OK | FAIL | EXCEPTION
+	result: Si OK -> return value, Si es FAIL/EXCEPTION -> string (descripción del error o ID de error)
+}
+
+*/
+
+function authenticateUser( username, password )
+{
+	let api_return = 
+	{
+		status: false,
+		result: null
+	};
+
+
+	if ( (username != undefined && username != null && username != '') && (password != undefined && password != null && password != '') )
+	{
+		let userdata = isValidUserGetData(username);
+
+		if ( userdata.isLocked == false )
+		{
+			if( userdata.password === password )
+			{
+				api_return.status = true;
+			}
+			else
+			{
+				api_return.status = false;
+				api_return.result = 'USER_PASSWORD_FAILED';
+
+				userdata.failedLoginCounter++;
+				
+				if ( userdata.failedLoginCounter == maxLoginFailedAttempts )
+				{
+					userdata.isLocked = true;
+					api_return.status = false;
+					api_return.result = 'BLOCKED_USER';
+				}
+			}
+		}
+		else
+		{
+			api_return.status = false;
+			api_return.result = 'BLOCKED_USER';
+		}
+		
+	}
+	
+	return api_return;
+}
+
+function isValidPassword(password) {
+    const lengthValid = password.length >= 8 && password.length <= 16;
+    const hasUppercase = /[A-Z]/.test(password);
+    const specialMatches = password.match(/[-_}{/!@#$%^&*]/g);
+    const specialCount = specialMatches ? specialMatches.length : 0;
+    
+    return lengthValid && hasUppercase && specialCount >= 2;
+}
+
+function GUI_login() {
+	let username = window.prompt("Ingrese su nombre de usuario:");
+	let password = window.prompt("Ingrese contraseña:");
+	let api_return = authenticateUser(username, password);
+
+	if (api_return.status) {
+		alert('Usuario autenticado exitosamente');
+		userMenu(username); // Agregado
+	} else {
+		switch (api_return.result) {
+			case 'BLOCKED_USER':
+				alert('Usuario bloqueado. Contacte al administrador');
+				break;
+			case 'USER_PASSWORD_FAILED':
+				alert('Usuario y/o contraseña incorrecta');
+				break;
+			default:
+				alert('Error desconocido');
+				break;
+		}
+	}
+	return api_return;
+}
+
+// ARTICULOS DE LIMPIEZA
+
+const articulos = [
+	{
+		id: 1,
+		nombre: "Lavandina x 1L",
+		precio: 875.25,
+		stock: 3000
+	},
+	{
+		id: 4,
+		nombre: "Detergente x 500mL",
+		precio: 1102.45,
+		stock: 2010
+	},
+	{
+		id: 22,
+		nombre: "Jabón en polvo x 250g",
+		precio: 650.22,
+		stock: 407
+	}
+];
+
+function displayArticulos() {
+    let articulosList = "Artículos de limpieza disponibles:\n";
+    articulos.forEach(articulo => {
+        articulosList += `ID: ${articulo.id}, Nombre: ${articulo.nombre}, Precio: $${articulo.precio.toFixed(2)}, Stock: ${articulo.stock}\n`;
+    });
+    alert(articulosList);
+}
+
+function addArticulo() {
+    let nombre = prompt("Ingrese el nombre del nuevo artículo:");
+    let precio = parseFloat(prompt("Ingrese el precio del nuevo artículo:"));
+    let stock = parseInt(prompt("Ingrese la cantidad de stock del nuevo artículo:"));
+
+    if (isNaN(precio) || isNaN(stock)) {
+        alert("Precio o stock inválido.");
+        return;
+    }
+
+    const newArticulo = {
+        id: articulos.length + 1,
+        nombre: nombre,
+        precio: precio,
+        stock: stock
+    };
+
+    articulos.push(newArticulo);
+    alert("Artículo agregado exitosamente.");
+}
+
+function editArticulo() {
+    let id = parseInt(prompt("Ingrese el ID del artículo a editar:"));
+    let articulo = articulos.find(a => a.id === id);
+
+    if (!articulo) {
+        alert("Artículo no encontrado.");
+        return;
+    }
+
+    let nuevoNombre = prompt("Ingrese el nuevo nombre del artículo:", articulo.nombre);
+    let nuevoPrecio = parseFloat(prompt("Ingrese el nuevo precio del artículo:", articulo.precio));
+    let nuevoStock = parseInt(prompt("Ingrese la nueva cantidad de stock del artículo:", articulo.stock));
+
+    if (isNaN(nuevoPrecio) || isNaN(nuevoStock)) {
+        alert("Precio o stock inválido.");
+        return;
+    }
+
+    articulo.nombre = nuevoNombre;
+    articulo.precio = nuevoPrecio;
+    articulo.stock = nuevoStock;
+
+    alert("Artículo editado exitosamente.");
+}
+
+function deleteArticulo() {
+    let id = parseInt(prompt("Ingrese el ID del artículo a eliminar:"));
+    let index = articulos.findIndex(a => a.id === id);
+
+    if (index === -1) {
+        alert("Artículo no encontrado.");
+        return;
+    }
+
+    articulos.splice(index, 1);
+    alert("Artículo eliminado exitosamente.");
+}
+
+function buyArticulo() {
+    let id = parseInt(prompt("Ingrese el ID del artículo a comprar:"));
+    let articulo = articulos.find(a => a.id === id);
+
+    if (!articulo) {
+        alert("Artículo no encontrado.");
+        return;
+    }
+
+    if (articulo.stock <= 0) {
+        alert("No hay stock disponible para este artículo.");
+        return;
+    }
+
+    let cantidad = parseInt(prompt(`Ingrese la cantidad de ${articulo.nombre} que desea comprar:`));
+
+    if (isNaN(cantidad) || cantidad <= 0 || cantidad > articulo.stock) {
+        alert("Cantidad inválida.");
+        return;
+    }
+
+    if (confirm(`¿Está seguro de que desea comprar ${cantidad} unidades de ${articulo.nombre}?`)) {
+        articulo.stock -= cantidad;
+        alert(`Compra exitosa. Ha comprado ${cantidad} unidades de ${articulo.nombre}.`);
+    } else {
+        alert("Compra cancelada.");
+    }
+}
+
+// MENUES Y CONTEXT --------------------------------------------
+function mainMenu() {
+	let option = '';
+	do {
+		option = prompt("Seleccione una opción:\n1. Iniciar sesión\n2. Crear cuenta de usuario\nX. Salir");
+
+		switch (option) {
+			case '1':
+				GUI_login();
+				break;
+			case '2':
+				let newUsername = prompt("Ingrese un nuevo nombre de usuario:");
+				if (authData.has(newUsername)) {
+					alert("Ese nombre de usuario ya existe.");
+					break;
+				}
+				let newPassword = prompt("Ingrese una nueva contraseña:");
+				if (isValidPassword(newPassword)) {
+					authData.set(newUsername, { password: newPassword, failedLoginCounter: 0, isLocked: false });
+					alert("Cuenta creada exitosamente.");
+				} else {
+					alert("La contraseña no cumple con los requisitos:\n- 8 a 16 caracteres\n- Al menos 1 mayúscula\n- Al menos 2 símbolos especiales");
+				}
+				break;
+			case 'X':
+			case 'x':
+				alert("Saliendo del sistema.");
+				break;
+			default:
+				alert("Opción inválida. Intente nuevamente.");
+		}
+	} while (option !== 'X' && option !== 'x');
+}
+
+function userMenu(username) {
+	let option = '';
+
+	alert(`¡Bienvenido/a ${username}!`);
+
+	do {
+		option = prompt("Seleccione una opción:\n1. Cambiar contraseña\n2, Ver artículos\n3. Agregar articulo\n4. Editar articulo\n.5 Eliminar articulo\nX. Salir");
+
+		switch(option) {
+			case '1':
+				let currentPassword = prompt("Ingrese su contraseña actual:");
+				let userData = authData.get(username);
+
+				if (userData.password === currentPassword) {
+					let newPassword = prompt("Ingrese la nueva contraseña:");
+					
+					if (isValidPassword(newPassword)) {
+						userData.password = newPassword;
+						alert("Contraseña actualizada exitosamente.");
+					} else {
+						alert("La contraseña no cumple con los requisitos de seguridad:\n- 8 a 16 caracteres\n- Al menos 1 mayúscula\n- Al menos 2 símbolos especiales");
+					}
+				} else {
+					alert("La contraseña actual no es correcta.");
+				}
+				break;
+            case '2':
+                displayArticulos();
+                break;
+            case '3':
+                addArticulo();
+                break;
+            case '4':
+                editArticulo();
+                break;
+            case '5': 
+                deleteArticulo();
+                break;
+            case '6':  
+                buyArticulo();
+                break;
+			case 'X':
+			case 'x':
+				alert("Sesión finalizada.");
+				break;
+
+			default:
+				alert("Opción inválida. Intente nuevamente.");
+		}
+	} while (option !== 'X' && option !== 'x');
+}
+
+function main() {
+	let attempts = 0;
+	const maxAttempts = maxLoginFailedAttempts;
+	let loggedIn = false;
+	let username = '';
+
+	while (attempts < maxAttempts && !loggedIn) {
+		username = prompt("Ingrese su nombre de usuario:");
+		let password = prompt("Ingrese contraseña:");
+		let api_return = authenticateUser(username, password);
+
+		if (api_return.status) {
+			loggedIn = true;
+			userMenu(username);
+		} else {
+			switch (api_return.result) {
+				case 'BLOCKED_USER':
+					alert('Usuario bloqueado. Contacte al administrador');
+					attempts = maxAttempts;
+					break;
+				case 'USER_PASSWORD_FAILED':
+					alert('Usuario y/o contraseña incorrecta');
+					attempts++;
+					break;
+				default:
+					alert('Error desconocido');
+					attempts++;
+					break;
+			}
+		}
+	}
+}
+
+window.onload = mainMenu;
+
+
+</script>
+
+</html>

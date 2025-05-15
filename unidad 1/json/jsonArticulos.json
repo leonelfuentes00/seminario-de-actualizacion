@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "nombre": "Lavandina x 1L",
+    "precio": 900.50,
+    "stock": 3200
+  },
+  {
+    "id": 4,
+    "nombre": "Detergente x 500mL",
+    "precio": 1150.75,
+    "stock": 2100
+  },
+  {
+    "id": 22,
+    "nombre": "Jabón en polvo x 250g",
+    "precio": 670.30,
+    "stock": 450
+  },
+  {
+    "id": 33,
+    "nombre": "Jabón líquido x 1L",
+    "precio": 780.00,
+    "stock": 100
+  }
+]
