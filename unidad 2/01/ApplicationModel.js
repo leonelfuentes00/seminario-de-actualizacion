@@ -68,6 +68,9 @@ class ApplicationModel {
                 precio: 650.22, 
                 stock: 407 }
 		];
+
+		this.loadUsers();
+		return true;
 	}
 
     isValidUserGetData(username) {
@@ -83,8 +86,7 @@ class ApplicationModel {
 
 		if ( (username != undefined && username != null && username != '') && (password != undefined && password != null && password != '') )
         {
-            let userdata = isValidUserGetData(username);
-
+            let userdata = this.isValidUserGetData(username); 
 			if (userdata && userdata.isLocked === false) {
 				if (userdata.password === password) {
 					api_return.status = true;
@@ -98,6 +100,7 @@ class ApplicationModel {
 						userdata.isLocked = true;
 						api_return.result = 'BLOCKED_USER';
 					}
+					this.saveUsers(); 
 				}
 			} else if (userdata?.isLocked) {
 				api_return.result = 'BLOCKED_USER';
@@ -124,23 +127,25 @@ class ApplicationModel {
 			isLocked: false,
 			role
 		});
+		this.saveUsers();
 		return true;
 	}
 
-    loadUsers() {
-        const savedUsers = localStorage.getItem('authData');
-        if (savedUsers) {
-            const parsed = JSON.parse(savedUsers);
-            for (let [user, data] of Object.entries(parsed)) {
-                this.authData.set(user, data);
-            }
-        }
-    }
 
-    saveUsers() {
-        const obj = Object.fromEntries(this.authData);
-        localStorage.setItem('authData', JSON.stringify(obj));
-    }
+	loadUsers() {
+		const savedUsers = localStorage.getItem('authData');
+		if (savedUsers) {
+			const parsed = JSON.parse(savedUsers);
+			for (let [user, data] of Object.entries(parsed)) {
+				this.authData.set(user, data);
+			}
+		}
+	}
+
+	saveUsers() {
+		const obj = Object.fromEntries(this.authData);
+		localStorage.setItem('authData', JSON.stringify(obj));
+	}
 
 	hasPermission(role, action) {
 		return this.userPermissions[role] && this.userPermissions[role][action];

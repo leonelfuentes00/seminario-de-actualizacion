@@ -43,6 +43,7 @@ class ApplicationUI {
 						let newPassword = prompt("Ingrese la nueva contraseña:");
 						if (this.model.isValidPassword(newPassword)) {
 							userData.password = newPassword;
+							this.model.saveUsers();
 							alert("Contraseña actualizada exitosamente.");
 						} else {
 							alert("La contraseña no cumple con los requisitos:\n- 8 a 16 caracteres\n- Al menos 1 mayúscula\n- Al menos 2 símbolos especiales");
@@ -101,13 +102,18 @@ class ApplicationUI {
 		const password = prompt("Contraseña:");
 		const res = this.model.authenticateUser(username, password);
 
+		this.model.saveUsers();
+
 		if (res.status) {
+			sessionStorage.setItem('currentUser', username);
+			sessionStorage.setItem('currentRole', res.role);
 			alert(`Autenticado como ${res.role}`);
 			this.userMenu(username, res.role);
 		} else {
 			alert(res.result === 'BLOCKED_USER' ? 'Bloqueado' : 'Error de autenticación');
 		}
 	}
+
 
 	createAccount() {
         let newUsername = prompt("Ingrese un nuevo nombre de usuario:");

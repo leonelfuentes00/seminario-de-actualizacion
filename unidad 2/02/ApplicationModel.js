@@ -68,6 +68,9 @@ class ApplicationModel {
                 precio: 650.22, 
                 stock: 407 }
 		];
+
+		this.loadUsers();
+		return true;
 	}
 
     isValidUserGetData(username) {
@@ -83,8 +86,7 @@ class ApplicationModel {
 
 		if ( (username != undefined && username != null && username != '') && (password != undefined && password != null && password != '') )
         {
-            let userdata = isValidUserGetData(username);
-
+            let userdata = this.isValidUserGetData(username); 
 			if (userdata && userdata.isLocked === false) {
 				if (userdata.password === password) {
 					api_return.status = true;
@@ -98,6 +100,7 @@ class ApplicationModel {
 						userdata.isLocked = true;
 						api_return.result = 'BLOCKED_USER';
 					}
+					this.saveUsers(); 
 				}
 			} else if (userdata?.isLocked) {
 				api_return.result = 'BLOCKED_USER';
@@ -124,23 +127,25 @@ class ApplicationModel {
 			isLocked: false,
 			role
 		});
+		this.saveUsers();
 		return true;
 	}
 
-    loadUsers() {
-        const savedUsers = localStorage.getItem('authData');
-        if (savedUsers) {
-            const parsed = JSON.parse(savedUsers);
-            for (let [user, data] of Object.entries(parsed)) {
-                this.authData.set(user, data);
-            }
-        }
-    }
 
-    saveUsers() {
-        const obj = Object.fromEntries(this.authData);
-        localStorage.setItem('authData', JSON.stringify(obj));
-    }
+	loadUsers() {
+		const cookie = document.cookie.split('; ').find(c => c.startsWith('authData='));
+		if (!cookie) return;
+		const json = decodeURIComponent(cookie.split('=')[1]);
+		const parsed = JSON.parse(json);
+		for (let [user, data] of Object.entries(parsed)) {
+			this.authData.set(user, data);
+		}
+	}
+
+	saveUsers() {
+		const obj = Object.fromEntries(this.authData);
+		document.cookie = `authData=${encodeURIComponent(JSON.stringify(obj))}; path=/; max-age=31536000`; // 1 año
+	}
 
 	hasPermission(role, action) {
 		return this.userPermissions[role] && this.userPermissions[role][action];
