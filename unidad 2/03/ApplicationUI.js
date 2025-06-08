@@ -1,4 +1,4 @@
-import { ApplicationModel } from './ApplicationModel.js';
+import { ApplicationModel } from './ApplicationModel';
 
 class ApplicationUI {
 	constructor(model) {
@@ -105,8 +105,8 @@ class ApplicationUI {
 		this.model.saveUsers();
 
 		if (res.status) {
-			sessionStorage.setItem('currentUser', username);
-			sessionStorage.setItem('currentRole', res.role);
+			document.cookie = `currentUser=${username}; path=/`;
+			document.cookie = `currentRole=${res.role}; path=/`;
 			alert(`Autenticado como ${res.role}`);
 			this.userMenu(username, res.role);
 		} else {

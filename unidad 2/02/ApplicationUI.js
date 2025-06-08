@@ -193,3 +193,4 @@ class ApplicationUI {
 		}
 	}
 }
+export { ApplicationUI };

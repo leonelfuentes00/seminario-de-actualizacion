@@ -187,3 +187,4 @@ class ApplicationModel {
 		return true;
 	}
 }
+export { ApplicationModel };

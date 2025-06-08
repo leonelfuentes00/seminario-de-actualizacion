@@ -131,6 +131,9 @@ class ApplicationModel {
 		return true;
 	}
 
+	/* no se usa, pero lo dejo por si acaso
+	estas funciones se usan si se quiere persistir los usuarios en cookies
+	no se recomienda para producción por temas de seguridad
 
 	loadUsers() {
 		const cookie = document.cookie.split('; ').find(c => c.startsWith('authData='));
@@ -145,6 +148,56 @@ class ApplicationModel {
 	saveUsers() {
 		const obj = Object.fromEntries(this.authData);
 		document.cookie = `authData=${encodeURIComponent(JSON.stringify(obj))}; path=/; max-age=31536000`; // 1 año
+	}
+		*/
+
+	openDB() {
+		console.log("entramos en openDB");
+			return new Promise((resolve, reject) => {
+			const request = indexedDB.open('AppDB', 1);
+			request.onupgradeneeded = event => {
+				const db = event.target.result;
+				if (!db.objectStoreNames.contains('authData')) {
+					db.createObjectStore('authData');
+				}
+				console.log("Base de datos creada o actualizada");
+			};
+			request.onsuccess = () => resolve(request.result);
+			console.log("Base de datos abierta correctamente");
+			request.onerror = () => reject(request.error);
+			console.log("Error al abrir la base de datos");
+		});
+	}
+
+	//creo funciones asíncronas para guardar y cargar los usuarios que usan IndexedDB para persistencia
+	async saveUsers() {
+		const db = await this.openDB();
+		const tx = db.transaction('authData', 'readwrite');
+		const store = tx.objectStore('authData');
+		await store.put(Object.fromEntries(this.authData), 'users');
+		
+		return new Promise((resolve, reject) => {
+			tx.oncomplete = () => {
+				console.log("Usuarios guardados correctamente");
+				resolve();
+			};
+			tx.onerror = () => {
+				console.error("Error al guardar los usuarios");
+				reject(tx.error);
+			};
+		});
+	}
+
+	async loadUsers() {
+		const db = await this.openDB();
+		const tx = db.transaction('authData', 'readonly');
+		const store = tx.objectStore('authData');
+		const data = await store.get('users');
+		if (data) {
+			for (let [user, val] of Object.entries(data)) {
+				this.authData.set(user, val);
+			}
+		}
 	}
 
 	hasPermission(role, action) {
@@ -188,3 +241,12 @@ class ApplicationModel {
 	}
 }
 export { ApplicationModel };
+
+
+/*
+	los metodos previos que se usaron con loadUsers y saveUsers utilizando localStorage, sessionStorage o cookies son menos seguros y no se recomienda su uso en aplicaciones reales 
+
+	anteriormente, haciamos las validaciones de usuario y contraseña directamente en el método isValidUserGetData, que se encargaba de verificar si el usuario existía y si la contraseña era correcta
+
+	en el caso de IndexedDB se usa directamente la función loadUsers para cargar los usuarios al iniciar la aplicación y saveUsers para guardarlos al crear un nuevo usuario o modificar uno existente.
+*/
