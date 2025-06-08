@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Unidad 2</title>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script type="module">
+        import { ApplicationModel } from "./ApplicationModel.js";
+        import { ApplicationUI } from "./ApplicationUI.js";
+
+        const main = async () => {
+            console.log("inicializacion");
+            const model = new ApplicationModel();
+            await model.loadUsers();
+            console.log("usuarios cargados");
+            const app = new ApplicationUI(model);
+            app.mainMenu();
+        };
+
+        main();
+    </script>
+</body>
+</html>
