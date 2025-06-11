@@ -157,8 +157,15 @@ class ApplicationModel {
 			const request = indexedDB.open('AppDB', 1);
 			request.onupgradeneeded = event => {
 				const db = event.target.result;
+
 				if (!db.objectStoreNames.contains('authData')) {
 					db.createObjectStore('authData');
+				}
+				if (!db.objectStoreNames.contains('articulos')) {
+					db.createObjectStore('articulos', { keyPath: 'id' });
+				}
+				if (!db.objectStoreNames.contains('userPermissions')) {
+					db.createObjectStore('userPermissions');
 				}
 				console.log("Base de datos creada o actualizada");
 			};
@@ -172,9 +179,17 @@ class ApplicationModel {
 	//creo funciones asíncronas para guardar y cargar los usuarios que usan IndexedDB para persistencia
 	async saveUsers() {
 		const db = await this.openDB();
-		const tx = db.transaction('authData', 'readwrite');
-		const store = tx.objectStore('authData');
-		await store.put(Object.fromEntries(this.authData), 'users');
+		
+		const tx = db.transaction(['authData', 'articulos', 'userPermissions'], 'readwrite');
+		
+		const userStore = tx.objectStore('authData');
+		const articleStore = tx.objectStore('articulos');
+		const userPermissionStore = tx.objectStore('userPermissions');
+		
+		await userStore.put(Object.fromEntries(this.authData), 'users');
+		await articleStore.put(Object.fromEntries(this.articulos), 'articulos');
+		await userPermissionStore.put(Object.fromEntries(this.userPermissions), 'permissions');
+
 		
 		return new Promise((resolve, reject) => {
 			tx.oncomplete = () => {
@@ -190,14 +205,25 @@ class ApplicationModel {
 
 	async loadUsers() {
 		const db = await this.openDB();
-		const tx = db.transaction('authData', 'readonly');
-		const store = tx.objectStore('authData');
-		const data = await store.get('users');
+
+		const tx = db.transaction(['authData', 'articulos', 'userPermissions'], 'readwrite');
+
+		const userStore = tx.objectStore('authData');
+		const articleStore = tx.objectStore('articulos');
+		const userPermissionStore = tx.objectStore('userPermissions');		
+	
+		const data = await userStore.get('users');
 		if (data) {
 			for (let [user, val] of Object.entries(data)) {
 				this.authData.set(user, val);
 			}
 		}
+
+		const articulos = await articleStore.get('articulos');
+		if (articulos) this.articulos = articulos;
+
+		const perms = await userPermissionStore.get('permissions');
+		if (perms) this.userPermissions = perms;
 	}
 
 	hasPermission(role, action) {

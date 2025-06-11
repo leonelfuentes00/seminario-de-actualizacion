@@ -160,6 +160,13 @@ class ApplicationModel {
 				if (!db.objectStoreNames.contains('authData')) {
 					db.createObjectStore('authData');
 				}
+				if (!db.objectStoreNames.contains('articulos'))
+				db.createObjectStore('articulos');
+				if (!db.objectStoreNames.contains('userPermissions'))
+					db.createObjectStore('userPermissions');
+				if (!db.objectStoreNames.contains('logs'))
+					db.createObjectStore('logs', { 
+				autoIncrement: true });
 				console.log("Base de datos creada o actualizada");
 			};
 
@@ -176,9 +183,11 @@ class ApplicationModel {
 	//creo funciones asíncronas para guardar y cargar los usuarios que usan IndexedDB para persistencia
 	async saveUsers() {
 		const db = await this.openDB();
-		const tx = db.transaction('authData', 'readwrite');
+		const tx = db.transaction(['authData', 'articulos', 'userPermissions'], 'readwrite');
 		const store = tx.objectStore('authData');
 		await store.put(Object.fromEntries(this.authData), 'users');
+		await tx.objectStore('articulos').put(this.articulos, 'articulos');
+		await tx.objectStore('userPermissions').put(this.userPermissions, 'permissions');
 		
 		return new Promise((resolve, reject) => {
 			tx.oncomplete = () => {
@@ -194,7 +203,7 @@ class ApplicationModel {
 
 	async loadUsers() {
 		const db = await this.openDB();
-		const tx = db.transaction('authData', 'readonly');
+		const tx = db.transaction(['authData', 'articulos', 'userPermissions'], 'readonly');
 		const store = tx.objectStore('authData');
 		const data = await store.get('users');
 		if (data) {
@@ -202,6 +211,11 @@ class ApplicationModel {
 				this.authData.set(user, val);
 			}
 		}
+		const articulos = await tx.objectStore('articulos').get('articulos');
+		if (articulos) this.articulos = articulos;
+
+		const permissions = await tx.objectStore('userPermissions').get('permissions');
+		if (permissions) this.userPermissions = permissions;
 	}
 
 	async logAction(userId, actionName, values) {
