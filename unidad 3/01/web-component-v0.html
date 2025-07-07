@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>   </title>
+	</head>
+	<body>
+		
+	</body>
+
+	<script>
+
+	class CustomCalculator extends HTMLElement
+	{
+		constructor()
+		{
+			super();
+
+			this.display = document.createElement('input');
+			this.btn1 = document.createElement('button');
+			this.btnPlus = document.createElement('button');
+			this.btnCalculate = document.createElement('button');
+
+			this.display.type = 'text'; //<input type="text">
+			this.btn1.innerText = '1'; //<button>1</button>
+			this.btnPlus.innerText = '+'; //<button>+</button>
+			this.btnCalculate.innerText = '='; //<button>=</button>
+		}
+
+		onButtonCalculateClick(event)
+		{
+			this.display.value = eval(this.display.value);
+		}
+
+		onButton1Click(event)
+		{
+			this.display.value += '1';
+		}
+
+		onButtonPlusClick(event)
+		{
+			this.display.value += '+';
+		}
+
+		connectedCallback()
+		{
+			//Se va a ejecutar siempre cuando el elemento es insertado en el DOM
+			//DOM = Arbol de elementos HTML ya como instancias (objetos) de JS.
+
+			this.appendChild(this.display);
+			this.appendChild(this.btn1);
+			this.appendChild(this.btnPlus);
+			this.appendChild(this.btnCalculate);
+
+			this.btn1.onclick = this.onButton1Click.bind(this);
+			this.btnPlus.onclick = this.onButtonPlusClick.bind(this);
+			this.btnCalculate.onclick = this.onButtonCalculateClick.bind(this);
+		}
+
+		disconnectedCallback()
+		{
+			//Se va a ejecutar siempre que se quite el elemento del documento
+		}
+
+		adoptedCallback()
+		{
+			//Se va a ejecutar siempre que el elemento se cambie de documento.
+		}
+
+		connectedMoveCallback()
+		{
+			//Se ejecuta cuando se mueve el elemento dentro del DOM
+		}
+
+		static get observableAttributes()
+		{
+			//Solo para publicar cuáles son los atributos que tendría disponible el webcomponent
+			//Si es utilizado a través de código HTML
+			//Ejemplo: <mi-elemento sabor="acido"> </mi-elemento>
+
+			return ['sabor']
+		}
+
+		attributeChangedCallback(attr, newvalue, oldvalue )
+		{
+			//Manejador de cambios de los valores de los atributos personalizados
+		}
+	}
+
+	customElements.define('x-calculator', CustomCalculator );
+
+	
+
+	function main()
+	{
+		document.body.appendChild( new CustomCalculator() );
+	}
+
+	window.onload = main;
+
+	</script>
+</html>
