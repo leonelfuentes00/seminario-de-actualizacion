@@ -1,69 +1,87 @@
 export class PricingComponent extends HTMLElement {
 	constructor() {
 		super();
-		this.shadow = this.attachShadow({ mode: 'open' });
-		this.plans = [
-			{ name: "Basico", price: "$10", features: ["1 usuario", "5 GB almacenamiento", "Soporte básico"] },
-			{ name: "Estandar", price: "$25", features: ["5 usuarios", "50 GB almacenamiento", "Soporte estandar"] },
-			{ name: "Premium", price: "$50", features: ["Usuarios ilimitados", "1 TB almacenamiento", "Soporte premium"] }
-		];
+		this.attachShadow({ mode: 'open' });
+		this._plans = [];
+	}
+
+	set data(value) {
+		this._plans = value || [];
+		this.render();
 	}
 
 	connectedCallback() {
 		this.render();
 	}
 
-	disconnectedCallback() {}
-
-	set data(newPlans) {
-		this.plans = newPlans;
-		this.render();
-	}
-
 	render() {
-		this.shadow.innerHTML = '';
+		this.shadowRoot.innerHTML = '';
+
+		const styleLink = document.createElement('link');
+		styleLink.rel = 'stylesheet';
+		styleLink.href = 'https://www.w3schools.com/w3css/5/w3.css';
+
+		const fontLink = document.createElement('link');
+		fontLink.rel = 'stylesheet';
+		fontLink.href = 'https://fonts.googleapis.com/css?family=Verdana';
+		this.shadowRoot.appendChild(fontLink);
+
+		const style = document.createElement('style');
+		style.textContent = `* { font-family: Verdana, sans-serif; }`;
 
 		const container = document.createElement('div');
-		container.classList.add('w3-container', 'w3-row-padding');
+		container.className = 'w3-container';
 
-		this.plans.forEach(plan => {
+		this._plans.forEach(plan => {
 			const card = document.createElement('div');
-			card.classList.add('w3-third');
-
-			const cardInner = document.createElement('div');
-			cardInner.classList.add('w3-card', 'w3-margin', 'w3-padding');
-
-			const title = document.createElement('h3');
-			title.textContent = plan.name;
-
-			const price = document.createElement('h4');
-			price.textContent = plan.price;
+			card.className = 'w3-third w3-margin-bottom';
 
 			const ul = document.createElement('ul');
-			plan.features.forEach(feature => {
+			ul.className = 'w3-ul w3-border w3-center w3-hover-shadow';
+
+			const titleLi = document.createElement('li');
+			titleLi.className = `${plan.color || 'w3-black'} w3-xlarge w3-padding-32`;
+			titleLi.textContent = plan.name;
+			ul.appendChild(titleLi);
+
+			plan.features.forEach(f => {
 				const li = document.createElement('li');
-				li.textContent = feature;
+				li.className = 'w3-padding-16';
+				if (f.bold && f.text) {
+					li.innerHTML = `<b>${f.bold}</b> ${f.text}`;
+				} else {
+					li.textContent = f;
+				}
 				ul.appendChild(li);
 			});
 
-			const btn = document.createElement('button');
-			btn.textContent = 'Seleccionar';
-			btn.classList.add('w3-button', 'w3-teal', 'w3-margin-top');
+			const priceLi = document.createElement('li');
+			priceLi.className = 'w3-padding-16';
+			priceLi.innerHTML = `<h2 class="w3-wide">${plan.price}</h2><span class="w3-opacity">${plan.period}</span>`;
+			ul.appendChild(priceLi);
 
-			cardInner.appendChild(title);
-			cardInner.appendChild(price);
-			cardInner.appendChild(ul);
-			cardInner.appendChild(btn);
-			card.appendChild(cardInner);
+			const btnLi = document.createElement('li');
+			btnLi.className = 'w3-light-grey w3-padding-24';
+			const button = document.createElement('button');
+			button.className = 'w3-button w3-green w3-padding-large';
+			button.textContent = plan.cta || 'Sign Up';
+			btnLi.appendChild(button);
+			ul.appendChild(btnLi);
+
+			card.appendChild(ul);
 			container.appendChild(card);
 		});
 
-		const link = document.createElement('link');
-		link.rel = 'stylesheet';
-		link.href = 'https://www.w3schools.com/w3css/5/w3.css';
+		const wrapper = document.createElement('div');
+		wrapper.className = 'w3-third w3-margin-bottom';
+		const title = document.createElement('h2');
+		title.textContent = 'Responsive Pricing Tables';
+		wrapper.appendChild(title);
 
-		this.shadow.appendChild(link);
-		this.shadow.appendChild(container);
+		this.shadowRoot.appendChild(styleLink);
+		this.shadowRoot.appendChild(wrapper);
+		this.shadowRoot.appendChild(container);
+		this.shadowRoot.appendChild(style);
 	}
 }
 
